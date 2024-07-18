@@ -64,12 +64,15 @@ def UWB_FRI_reconstruct(sample_values, sample_times, learning_rate=3):
     reconstructed_signal = amplitude * signal.gausspulse(t, fc=center_freq, bw=(bandwidth / center_freq))
     
     # using gradient descent to minimize the error
-    for i in range(1000):
+    
+    progress_bar = st.progress(0, text='Reconstructing Signal..., Fitting...')
+    
+    for i in range(4000):
         error = np.sum(np.abs(reconstructed_signal - sample_values))
         if error < 1e-12:
             break
         
-        print(f'Error: {error}')
+        progress_bar.progress((i / 4000), text='Reconstructing Signal..., Fitting...')
         
         # calculate the center_freq_gradient, bandwidth_gradient, amplitude_gradient, pulse_timing_gradient
         center_freq_gradient = np.sum((reconstructed_signal - sample_values) * signal.gausspulse(t, fc=center_freq, bw=(bandwidth / center_freq)) * 2 * (t) * np.pi * bandwidth / center_freq ** 2)
@@ -86,6 +89,9 @@ def UWB_FRI_reconstruct(sample_values, sample_times, learning_rate=3):
         t = sample_times - pulse_timing
         
         reconstructed_signal = signal.gausspulse(t, fc=center_freq, bw=(bandwidth / center_freq))
+        
+    progress_bar.progress(100, text='DONE!')
+    progress_bar.empty()
     
     return reconstructed_signal, center_freq, bandwidth, amplitude, pulse_timing
 
